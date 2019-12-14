@@ -1,0 +1,121 @@
+---
+title: "CMTH642 Assignment 3"
+author: "Paul Ycay"
+date: "25/07/2019"
+output:
+  word_document: default
+  pdf_document: default
+course: CMTH 642
+---
+The following document was used to supplement this project https://rpubs.com/shradhit/winequality
+The RMD file for Lab 10 and Lab 10 solutions was used to supplement this assignment as well
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(tinytex.verbose = TRUE)
+install.packages("ggplot2",
+   repos = c("http://rstudio.org/_packages",
+   "http://cran.rstudio.com"))
+install.packages("class",
+   repos = c("http://rstudio.org/_packages",
+   "http://cran.rstudio.com"))
+install.packages("gmodels",
+   repos = c("http://rstudio.org/_packages",
+   "http://cran.rstudio.com"))
+library(corrplot)
+library(class)
+library(gmodels)
+
+```
+1. Check data characteristics. Is there missing data? 
+
+```{r, tidy=TRUE} 
+wine<-read.csv(file="http://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv", header = TRUE, sep= ";");
+str(wine)
+head(wine)
+tail(wine)
+summary(wine)
+
+sum(is.na(wine))
+```
+There is no missing data
+
+2.What is the	correlation	between	the	attributes other than wine quality?
+
+```{r}
+panel.cor <- function(x, y, digits=2, prefix="", cex.cor) 
+{
+    usr <- par("usr"); on.exit(par(usr)) 
+    par(usr = c(0, 1, 0, 1)) 
+    r <- abs(cor(x, y)) 
+    txt <- format(c(r, 0.123456789), digits=digits)[1] 
+    txt <- paste(prefix, txt, sep="") 
+    if(missing(cex.cor)) cex <- 0.8/strwidth(txt) 
+ 
+    test <- cor.test(x,y) 
+    # borrowed from printCoefmat
+    Signif <- symnum(test$p.value, corr = FALSE, na = FALSE, 
+                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                  symbols = c("***", "**", "*", ".", " ")) 
+ 
+    text(0.5, 0.5, txt, cex = cex * r) 
+    text(.8, .8, Signif, cex=cex, col=2) 
+}
+wine_cor<-subset(wine, select=c(1:11))
+pairs(wine_cor, lower.panel=panel.smooth, upper.panel=panel.cor)
+corrplot(cor(wine_cor))
+```
+
+3. Graph the frequency distribution	of wine quality.
+```{r}
+hist(wine$quality)
+```
+
+4. Reduce the levels of rating for quality to three levels as high, medium and	
+low.
+
+
+```{r}
+wine$quality = ifelse(wine$quality < 5, 'low', ifelse(wine$quality > 7, 'high', 'medium'))
+wine$quality = ordered(wine$quality, c('low', 'medium', 'high'))
+round(prop.table(table(wine$quality)) * 100, digits = 1)
+head(wine$quality)
+tail(wine$quality)
+summary(wine$quality)
+```
+5. Normalize the data set. 
+```{r}
+normalize <- function(x) {
+               return ((x - min(x)) / (max(x) - min(x))) }
+wine_n <- as.data.frame(lapply(wine[-12],normalize))
+wine_n <- cbind(wine_n,wine$quality)
+head(wine_n)
+tail(wine_n)
+summary(wine_n)
+```
+6. Divide the data to training and testing groups. 
+```{r}
+set.seed(1)
+index <- sample(1:nrow(wine_n), 0.65 *nrow(wine_n))
+wine_train <- wine_n[index,]
+wine_test <- wine_n[-index,]
+wine_train_labels <- wine_train[,12]
+wine_test_labels <- wine_test[,12]
+summary(wine_train_labels)
+summary(wine_test_labels)
+```
+7. Use the KNN algorithm to predict quality of wine using its attributes 
+```{r}
+wine_test_pred <- knn(train = wine_train[,1:11], test = wine_test[,1:11],cl = wine_train[,1], k=10)
+head(wine_test_pred)
+tail(wine_test_pred)
+summary(wine_test_pred)
+```
+8. Evaluate the model performance  
+```{r}
+CrossTable(x=wine_test_labels, y=wine_test_pred, prop.chisq=FALSE)
+```
+There were 1715 observations
+
+
