@@ -1,4 +1,4 @@
-# CMTH-642-Advanced-Data-Analytics-with-R
+# Advanced R Programming: CMTH-642-Advanced-Data-Analytics-with-R
 This is a class on advanced methods using R. Here are some of the assignments I did, which includes advanced analysis on USDA nutrient data sets and the Wine Quality data set
 - Assignment 1 dealt with removing missing variables and cleaning the USDA Macronutrients, Micronturients datasets. Attached in the folder are the relevant files.
 - Assignment 2 used a cleaner version of the USDA data set. In this project, we determine the correlation between variables, apply an ANOVA model, and predict the significance of indepedent values. Furthermore, we answer research questions based on non-parametric statistics. 
